@@ -3,144 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Label Management | Superadmin</title>
+    <title>SaaS Label Control Center | Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>[x-cloak] { display: none !important; }</style>
 </head>
-<body class="bg-gray-50 font-sans antialiased" x-data="labelManager()">
+<body class="bg-gray-100 font-sans antialiased" x-data="labelManager()">
 
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900">Label Management</h1>
-                <p class="text-sm text-gray-500">Manage master dictionary and company-specific overrides</p>
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 p-2 rounded-lg"><i class="fas fa-layer-group text-white text-xl"></i></div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900 tracking-tight">Label Control <span class="text-indigo-600">Pro</span></h1>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Multi-Tenant Management</p>
+                </div>
             </div>
-            <div class="flex space-x-3">
-                <button @click="showMasterModal = true" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
-                    <i class="fas fa-plus mr-2"></i> Add Master Key
-                </button>
-            </div>
+            <button @click="openAddMaster()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-full text-sm font-bold transition shadow-lg shadow-indigo-200 flex items-center">
+                <i class="fas fa-plus-circle mr-2"></i> New Master Key
+            </button>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                <div class="text-gray-500 text-sm font-medium">Master Keys</div>
-                <div class="text-3xl font-bold text-indigo-600">42</div>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div class="flex space-x-1 bg-gray-200 p-1 rounded-xl w-fit">
+                <button @click="activeTab = 'master'" :class="activeTab === 'master' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-600 hover:text-gray-900'" class="px-6 py-2 rounded-lg font-bold text-xs uppercase tracking-wide transition">
+                    Master Dictionary
+                </button>
+                <button @click="activeTab = 'companies'" :class="activeTab === 'companies' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-600 hover:text-gray-900'" class="px-6 py-2 rounded-lg font-bold text-xs uppercase tracking-wide transition">
+                    Company Overrides
+                </button>
             </div>
-            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                <div class="text-gray-500 text-sm font-medium">Active Overrides</div>
-                <div class="text-3xl font-bold text-green-600">128</div>
-            </div>
-            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                <div class="text-gray-500 text-sm font-medium">Cache Status</div>
-                <div class="flex items-center mt-1">
-                    <span class="h-3 w-3 bg-green-500 rounded-full mr-2"></span>
-                    <span class="text-lg font-semibold text-gray-700">Optimized</span>
+
+            <div class="flex items-center space-x-4" x-show="activeTab === 'companies'">
+                <div class="bg-white border rounded-lg flex p-1 shadow-sm">
+                    <button @click="viewMode = 'list'" :class="viewMode === 'list' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-400'" class="p-2 rounded md:px-4 flex items-center transition">
+                        <i class="fas fa-list mr-2"></i> <span class="hidden md:inline text-xs font-bold uppercase">Rows</span>
+                    </button>
+                    <button @click="viewMode = 'grid'" :class="viewMode === 'grid' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-400'" class="p-2 rounded md:px-4 flex items-center transition">
+                        <i class="fas fa-th-large mr-2"></i> <span class="hidden md:inline text-xs font-bold uppercase">Cards</span>
+                    </button>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div class="border-b border-gray-200 bg-gray-50 px-4">
-                <nav class="flex space-x-8">
-                    <button @click="activeTab = 'master'" :class="activeTab === 'master' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="py-4 px-1 border-b-2 font-medium text-sm transition">
-                        Master Dictionary
-                    </button>
-                    <button @click="activeTab = 'company'" :class="activeTab === 'company' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'" class="py-4 px-1 border-b-2 font-medium text-sm transition">
-                        Company Overrides
-                    </button>
-                </nav>
+        <div x-show="activeTab === 'master'" x-transition x-cloak class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h2 class="font-bold text-gray-800">Global Defaults <span class="text-xs text-gray-400 ml-2" x-text="'('+masterFields.length+' keys)'"></span></h2>
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
+                    <input type="text" x-model="masterSearch" placeholder="Search keys..." class="pl-9 pr-4 py-2 border rounded-xl text-sm w-64 focus:ring-2 focus:ring-indigo-500 outline-none border-gray-300">
+                </div>
+            </div>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50/50">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Field Key</th>
+                        <th class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Default Value</th>
+                        <th class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Global Status</th>
+                        <th class="px-6 py-4 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    <template x-for="field in filteredMasterFields" :key="field.key">
+                        <tr class="hover:bg-indigo-50/30 transition">
+                            <td class="px-6 py-4 font-mono text-xs text-indigo-600 bg-indigo-50/20" x-text="field.key"></td>
+                            <td class="px-6 py-4 text-sm text-gray-900 font-semibold" x-text="field.label"></td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold bg-green-100 text-green-700 uppercase">Deployed</span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <button @click="editMaster(field)" class="text-gray-400 hover:text-indigo-600 transition p-2"><i class="fas fa-edit"></i></button>
+                                <button @click="confirmDelete(field.key)" class="text-gray-400 hover:text-red-500 transition p-2"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+
+        <div x-show="activeTab === 'companies'" x-transition x-cloak>
+            <div class="mb-6">
+                <div class="relative max-w-lg shadow-sm">
+                    <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
+                    <input x-model="companySearch" type="text" placeholder="Filter companies..." class="w-full pl-11 pr-4 py-3 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
+                </div>
             </div>
 
-            <div x-show="activeTab === 'master'" class="p-0">
+            <div x-show="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" x-transition>
+                <template x-for="company in filteredCompanies" :key="company.id">
+                    <div class="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-xl hover:border-indigo-200 transition-all group">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="h-12 w-12 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-bold text-xl shadow-lg shadow-indigo-100" x-text="company.name.charAt(0)"></div>
+                            <div class="flex items-center space-x-2">
+                                <span :class="company.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="text-[10px] font-bold px-2 py-1 rounded uppercase" x-text="company.status"></span>
+                                <button @click="openEditCompany(company)" class="text-gray-400 group-hover:text-indigo-600 transition"><i class="fas fa-external-link-alt"></i></button>
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-1" x-text="company.name"></h3>
+                        <p class="text-xs text-gray-400 mb-4" x-text="'Company ID: #' + company.id"></p>
+                        
+                        <div class="border-t pt-4">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Active Overrides</p>
+                            <div class="space-y-2">
+                                <template x-if="company.overrides.length === 0">
+                                    <p class="text-xs italic text-gray-400">Using all default labels</p>
+                                </template>
+                                <template x-for="ov in company.overrides.slice(0, 3)">
+                                    <div class="flex items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-100">
+                                        <span class="text-[10px] font-mono text-gray-400" x-text="ov.key"></span>
+                                        <span class="text-xs font-bold text-indigo-600" x-text="ov.custom"></span>
+                                    </div>
+                                </template>
+                                <template x-if="company.overrides.length > 3">
+                                    <p class="text-[10px] text-center text-indigo-400 font-bold" x-text="'+ ' + (company.overrides.length - 3) + ' more'"></p>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <div x-show="viewMode === 'list'" class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden" x-transition>
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Field Key</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Default Label</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Company Name</th>
+                            <th class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Detailed Comparison (Default → Custom)</th>
+                            <th class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
+                            <th class="px-6 py-4 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <template x-for="field in masterFields" :key="field.key">
-                            <tr class="hover:bg-gray-50 transition">
-                                <td class="px-6 py-4 whitespace-nowrap font-mono text-sm text-indigo-600" x-text="field.key"></td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="field.label"></td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Global</span>
+                    <tbody class="divide-y divide-gray-100">
+                        <template x-for="company in filteredCompanies" :key="company.id">
+                            <tr class="hover:bg-gray-50 transition align-top">
+                                <td class="px-6 py-4">
+                                    <div class="font-bold text-gray-900" x-text="company.name"></div>
+                                    <div class="text-[10px] text-gray-400" x-text="'ID: ' + company.id"></div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button @click="editField(field)" class="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button>
-                                    <button @click="confirmDelete(field.key)" class="text-red-600 hover:text-red-900">Delete</button>
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-wrap gap-2">
+                                        <template x-if="company.overrides.length === 0">
+                                            <span class="text-xs text-gray-400">No customizations</span>
+                                        </template>
+                                        <template x-for="ov in company.overrides">
+                                            <div class="flex items-center space-x-2 bg-indigo-50 border border-indigo-100 px-2 py-1 rounded-md">
+                                                <span class="text-[10px] text-gray-400" x-text="ov.default"></span>
+                                                <i class="fas fa-long-arrow-alt-right text-indigo-300 text-xs"></i>
+                                                <span class="text-xs font-bold text-indigo-700" x-text="ov.custom"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <button @click="toggleStatus(company)" :class="company.status === 'Active' ? 'text-green-600' : 'text-gray-300'" class="text-xl"><i class="fas fa-toggle-on"></i></button>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <button @click="openEditCompany(company)" class="bg-gray-100 hover:bg-indigo-600 hover:text-white px-4 py-2 rounded-lg text-xs font-bold transition">Edit</button>
                                 </td>
                             </tr>
                         </template>
                     </tbody>
                 </table>
             </div>
+        </div>
 
-            <div x-show="activeTab === 'company'" class="p-6">
-                <div class="mb-6 flex items-center space-x-4">
-                    <label class="text-sm font-bold text-gray-700">Select Company:</label>
-                    <select class="border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2 border">
-                        <option>TechCorp (ID: 1)</option>
-                        <option>GuardForce (ID: 2)</option>
-                    </select>
-                </div>
-                
-                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
-                    <div class="flex">
-                        <div class="flex-shrink-0"><i class="fas fa-info-circle text-blue-400"></i></div>
-                        <div class="ml-3"><p class="text-sm text-blue-700">Saving changes here will instantly purge the company cache and apply new labels to all active users.</p></div>
+        <div x-show="activeTab === 'edit_company'" x-transition x-cloak class="bg-white rounded-3xl border shadow-2xl overflow-hidden">
+            <div class="p-8 border-b flex items-center justify-between bg-gray-900 text-white">
+                <div class="flex items-center space-x-6">
+                    <button @click="activeTab = 'companies'" class="h-10 w-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition"><i class="fas fa-chevron-left"></i></button>
+                    <div>
+                        <h2 class="text-2xl font-bold" x-text="selectedCompany?.name"></h2>
+                        <p class="text-xs text-indigo-300 font-bold uppercase tracking-widest">Customizing Company Overrides</p>
                     </div>
                 </div>
-
-                <div class="space-y-4">
-                    <template x-for="field in masterFields">
-                        <div class="flex items-center space-x-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                            <div class="w-1/3">
-                                <span class="block text-xs font-bold text-gray-400 uppercase" x-text="field.key"></span>
-                                <span class="text-sm text-gray-600" x-text="'Default: ' + field.label"></span>
-                            </div>
-                            <div class="w-2/3">
-                                <input type="text" :placeholder="'Enter custom label for ' + field.label" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2 border">
-                            </div>
+                <div class="flex space-x-4">
+                    <button @click="activeTab = 'companies'" class="px-6 py-2 text-sm font-bold text-gray-400 hover:text-white transition">Discard</button>
+                    <button @click="saveCompanyLabels()" class="bg-indigo-500 hover:bg-indigo-400 text-white px-8 py-3 rounded-xl text-sm font-bold shadow-xl transition transform active:scale-95">Save & Force Cache Sync</button>
+                </div>
+            </div>
+            
+            <div class="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-gray-50">
+                <template x-for="field in masterFields" :key="field.key">
+                    <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+                        <div class="flex justify-between items-start">
+                            <span class="text-[10px] font-mono font-bold text-gray-400" x-text="field.key"></span>
+                            <span class="bg-indigo-50 text-indigo-600 text-[10px] px-2 py-0.5 rounded-full font-bold">MASTER: <span x-text="field.label"></span></span>
                         </div>
-                    </template>
-                    <div class="pt-4 flex justify-end">
-                        <button class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700 shadow-md transition">Save & Refresh Cache</button>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase mb-2">Company-Specific Label</label>
+                            <input type="text" :value="getExistingOverride(field.key)" :placeholder="'Leave blank for ' + field.label" class="w-full bg-gray-50 border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none border transition-all">
+                        </div>
                     </div>
-                </div>
+                </template>
             </div>
         </div>
     </main>
 
-    <div x-show="showDeleteModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
-            <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+    <div x-show="showMasterModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm" x-transition>
+        <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl">
+            <h3 class="text-xl font-bold mb-6 text-gray-900" x-text="isEditMode ? 'Modify Master Key' : 'Create Master Key'"></h3>
+            <div class="space-y-5">
                 <div>
-                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                        <i class="fas fa-exclamation-triangle text-red-600"></i>
-                    </div>
-                    <div class="mt-3 text-center sm:mt-5">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">Delete Master Key?</h3>
-                        <div class="mt-2">
-                            <p class="text-sm text-gray-500">Are you sure you want to delete <span class="font-bold text-gray-900" x-text="selectedKey"></span>? This will also remove all company overrides for this field.</p>
-                        </div>
-                    </div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Technical Key Name</label>
+                    <input x-model="modalForm.key" :disabled="isEditMode" type="text" class="w-full bg-gray-50 border-gray-200 rounded-xl p-4 text-sm border focus:ring-2 focus:ring-indigo-500 outline-none disabled:opacity-50 font-mono">
                 </div>
-                <div class="mt-5 sm:mt-6 flex space-x-3">
-                    <button @click="showDeleteModal = false" class="flex-1 inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:text-sm">Cancel</button>
-                    <button @click="deleteKey()" class="flex-1 inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:text-sm">Delete Forever</button>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Default Display Label</label>
+                    <input x-model="modalForm.label" type="text" class="w-full bg-gray-50 border-gray-200 rounded-xl p-4 text-sm border focus:ring-2 focus:ring-indigo-500 outline-none">
                 </div>
+            </div>
+            <div class="mt-8 flex space-x-3">
+                <button @click="showMasterModal = false" class="flex-1 py-4 text-sm font-bold text-gray-400">Cancel</button>
+                <button @click="saveMasterKey()" class="flex-1 py-4 bg-indigo-600 text-white rounded-2xl text-sm font-bold shadow-lg hover:bg-indigo-700 transition">Deploy Key</button>
             </div>
         </div>
     </div>
@@ -149,22 +227,97 @@
         function labelManager() {
             return {
                 activeTab: 'master',
-                showDeleteModal: false,
-                selectedKey: '',
+                viewMode: 'list',
+                companySearch: '',
+                masterSearch: '',
+                showMasterModal: false,
+                isEditMode: false,
+                selectedCompany: null,
+                modalForm: { key: '', label: '' },
+                
                 masterFields: [
                     { key: 'label_user', label: 'User' },
                     { key: 'label_client', label: 'Client' },
                     { key: 'label_site', label: 'Site' },
                     { key: 'label_company', label: 'Company' }
                 ],
-                confirmDelete(key) {
-                    this.selectedKey = key;
-                    this.showDeleteModal = true;
+                
+                companies: [
+                    { 
+                        id: 1, 
+                        name: 'TechCorp Solutions', 
+                        status: 'Active',
+                        overrides: [
+                            { key: 'label_user', default: 'User', custom: 'Employee' },
+                            { key: 'label_client', default: 'Client', custom: 'Department' }
+                        ]
+                    },
+                    { 
+                        id: 2, 
+                        name: 'GuardForce Security', 
+                        status: 'Active',
+                        overrides: [
+                            { key: 'label_site', default: 'Site', custom: 'Checkpoint' },
+                            { key: 'label_client', default: 'Client', custom: 'Beat' },
+                            { key: 'label_user', default: 'User', custom: 'Guard' }
+                        ]
+                    },
+                    { 
+                        id: 3, 
+                        name: 'Global Logistics', 
+                        status: 'Paused',
+                        overrides: []
+                    }
+                ],
+
+                get filteredMasterFields() {
+                    return this.masterFields.filter(f => f.key.includes(this.masterSearch) || f.label.toLowerCase().includes(this.masterSearch.toLowerCase()));
                 },
-                deleteKey() {
-                    this.masterFields = this.masterFields.filter(f => f.key !== this.selectedKey);
-                    this.showDeleteModal = false;
-                    // In real app: axios.delete(`/admin/labels/${this.selectedKey}`)
+
+                get filteredCompanies() {
+                    return this.companies.filter(c => c.name.toLowerCase().includes(this.companySearch.toLowerCase()));
+                },
+
+                getExistingOverride(key) {
+                    if(!this.selectedCompany) return '';
+                    const match = this.selectedCompany.overrides.find(o => o.key === key);
+                    return match ? match.custom : '';
+                },
+
+                toggleStatus(company) {
+                    company.status = company.status === 'Active' ? 'Paused' : 'Active';
+                },
+
+                openEditCompany(company) {
+                    this.selectedCompany = company;
+                    this.activeTab = 'edit_company';
+                },
+
+                openAddMaster() {
+                    this.isEditMode = false;
+                    this.modalForm = { key: '', label: '' };
+                    this.showMasterModal = true;
+                },
+
+                editMaster(field) {
+                    this.isEditMode = true;
+                    this.modalForm = { ...field };
+                    this.showMasterModal = true;
+                },
+
+                saveMasterKey() {
+                    if(this.isEditMode) {
+                        const index = this.masterFields.findIndex(f => f.key === this.modalForm.key);
+                        this.masterFields[index].label = this.modalForm.label;
+                    } else {
+                        this.masterFields.push({ ...this.modalForm });
+                    }
+                    this.showMasterModal = false;
+                },
+
+                saveCompanyLabels() {
+                    alert('Syncing changes to Database & Clearing Company Cache...');
+                    this.activeTab = 'companies';
                 }
             }
         }
